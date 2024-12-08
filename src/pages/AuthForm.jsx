@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Button, Form, Spinner } from 'react-bootstrap';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 const AuthForm = ({ type, onSubmit }) => {
@@ -7,7 +7,8 @@ const AuthForm = ({ type, onSubmit }) => {
     const [username, setUsername] = useState('');
     const [name, setName] = useState('');
     const [role] = useState('masterAdmin');
-    const [message, setMessage] = useState({ text: '', type: '' }); // State for message
+    const [message, setMessage] = useState({ text: '', type: '' });
+    const [loading, setLoading] = useState(false); // Loader state
     const navigate = useNavigate();
 
     const passwordType = type === 'login' ? 'password' : 'text';
@@ -21,6 +22,8 @@ const AuthForm = ({ type, onSubmit }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // Start loading
+
         const payload = {
             username,
             password,
@@ -42,11 +45,12 @@ const AuthForm = ({ type, onSubmit }) => {
             });
 
             const result = await response.json();
+            setLoading(false); // Stop loading
 
             if (response.status === 201 || response.status === 200) {
-                setMessage({ text: result.message, type: 'success' }); // Set success message
+                setMessage({ text: result.message, type: 'success' });
                 setTimeout(() => {
-                    setMessage({ text: '', type: '' }); // Clear message after 3 seconds
+                    setMessage({ text: '', type: '' });
                     if (type === 'login') {
                         const expirationTime = new Date().getTime() + 4 * 60 * 60 * 1000;
                         sessionStorage.setItem('token', result.token);
@@ -62,6 +66,7 @@ const AuthForm = ({ type, onSubmit }) => {
             }
         } catch (error) {
             console.error('Error:', error);
+            setLoading(false); // Stop loading
             setMessage({ text: 'An error occurred while processing your request', type: 'error' });
             setTimeout(() => setMessage({ text: '', type: '' }), 3000);
         }
@@ -80,7 +85,6 @@ const AuthForm = ({ type, onSubmit }) => {
                     {type === 'login' ? 'Principal Admin Login' : 'Principal Admin Register'}
                 </h3>
 
-                {/* Display Message */}
                 {message.text && (
                     <div style={{
                         color: message.type === 'success' ? 'green' : 'red',
@@ -165,6 +169,7 @@ const AuthForm = ({ type, onSubmit }) => {
                         type="submit"
                         className="w-100"
                         size="lg"
+                        disabled={loading} // Disable button while loading
                         style={{
                             backgroundColor: '#4c56cc',
                             border: 'none',
@@ -174,7 +179,11 @@ const AuthForm = ({ type, onSubmit }) => {
                             borderRadius: '8px'
                         }}
                     >
-                        {type === 'login' ? 'Login' : 'Register'}
+                        {loading ? (
+                            <Spinner animation="border" size="sm" />
+                        ) : (
+                            type === 'login' ? 'Login' : 'Register'
+                        )}
                     </Button>
                 </Form>
                 {type === 'login' ? (
