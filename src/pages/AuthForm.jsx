@@ -48,7 +48,12 @@ const AuthForm = ({ type, onSubmit }) => {
             setLoading(false); // Stop loading
 
             if (response.status === 201 || response.status === 200) {
-                setMessage({ text: result.message, type: 'success' });
+                const successMessage = type === 'login' 
+                    ? 'Login successful. Please wait to redirect to the dashboard.'
+                    : 'Registered successfully. Please wait to redirect.';
+                
+                setMessage({ text: successMessage, type: 'success' });
+
                 setTimeout(() => {
                     setMessage({ text: '', type: '' });
                     if (type === 'login') {
